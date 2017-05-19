@@ -5,7 +5,7 @@ public class Driver {
 
     public static void main(String[] args)
     {
-        File f0 = new File("/Users/jasonkao/pitch-data/f0");
+        File f0 = new File("/Users/jasonkao/pitch-analyzer/f0");
         File[] data = f0.listFiles();
         BufferedWriter output = null;
         double[][] Rsq = new double[5][50];
@@ -13,7 +13,7 @@ public class Driver {
 
         try {
             for (int t = 1; t < 5; t++) {
-                String filename = "/Users/jasonkao/pitch-data/f0/tone" + t + ".csv";
+                String filename = "/Users/jasonkao/pitch-analyzer/f0/tone" + t + ".csv";
                 System.out.println("Writing to " + filename + ".");
                 output = new BufferedWriter( new FileWriter( new File( filename )));
                 for (int i = 0; i < data.length; i++) {

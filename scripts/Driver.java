@@ -8,18 +8,22 @@ public class Driver {
         File f0 = new File("/Users/jasonkao/Desktop/pitch-analyzer/f0");
         File[] data = f0.listFiles();
         BufferedWriter output = null;
-        double[][] Rsq = new double[5][50];
-        int[] sizes = {0, 0, 0, 0, 0};
+
+        File[] zhu = {
+            new File("/Users/jasonkao/Desktop/pitch-analyzer/zhu-tone1.csv"),
+            new File("/Users/jasonkao/Desktop/pitch-analyzer/zhu-tone2.csv"),
+            new File("/Users/jasonkao/Desktop/pitch-analyzer/zhu-tone3.csv"),
+            new File("/Users/jasonkao/Desktop/pitch-analyzer/zhu-tone4.csv") };
 
         try {
-            for (int t = 1; t < 5; t++) {
+            for (int t = 1; t <= 4; t++) {
                 String filename = "/Users/jasonkao/Desktop/pitch-analyzer/f0/tone" + t + ".csv";
                 System.out.println("Writing to " + filename + ".");
                 output = new BufferedWriter( new FileWriter( new File( filename )));
                 for (int i = 0; i < data.length; i++) {
                     File f = data[i];
                     if (f.getName().indexOf(t + ".txt") > 0) {
-                        User u = new User( new Scanner(f) );
+                        User u = new User( new Scanner(f), new Scanner( zhu[ t - 1 ]));
                         System.out.println(u);
                         output.write("" + u.getRSquared());
                         output.newLine();

@@ -31,6 +31,7 @@ public class Regression {
                 y[i] = Math.log( pitches.get(i) );
             }
         }
+
         r = getCovariance() / (getStDevX() * getStDevY());
         b = getSlope();
         a = getIntercept();
@@ -122,6 +123,17 @@ public class Regression {
         ybar /= y.length;
 
         return ybar - xbar * getSlope();
+    }
+
+    private void print1D(double[] d) {
+        String output = "[";
+        for (double x : d) {
+            output += x + ", ";
+        }
+        if (d.length > 0) {
+            output = output.substring( 0, output.length() - 2 );
+        }
+        System.out.println( output + "]" );
     }
 
     public String toString()

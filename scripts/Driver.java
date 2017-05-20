@@ -6,58 +6,66 @@ public class Driver {
     public static void main(String[] args)
     {
         File f0 = new File("/Users/jasonkao/Desktop/pitch-analyzer/f0");
-        File[] data = f0.listFiles();
-        BufferedWriter output = null;
+        File[] files = f0.listFiles();
+
+        ArrayList<Double>[] scores = {
+            new ArrayList<Double>(),
+            new ArrayList<Double>(),
+            new ArrayList<Double>(),
+            new ArrayList<Double>(),
+        };
 
         File[] zhu = {
-            new File("/Users/jasonkao/Desktop/pitch-analyzer/zhu-tone1.csv"),
-            new File("/Users/jasonkao/Desktop/pitch-analyzer/zhu-tone2.csv"),
-            new File("/Users/jasonkao/Desktop/pitch-analyzer/zhu-tone3.csv"),
-            new File("/Users/jasonkao/Desktop/pitch-analyzer/zhu-tone4.csv") };
+            new File("/Users/jasonkao/Desktop/pitch-analyzer/zhu-tone1.txt"),
+            new File("/Users/jasonkao/Desktop/pitch-analyzer/zhu-tone2.txt"),
+            new File("/Users/jasonkao/Desktop/pitch-analyzer/zhu-tone3.txt"),
+            new File("/Users/jasonkao/Desktop/pitch-analyzer/zhu-tone4.txt")
+        };
 
         try {
-            for (int t = 1; t <= 4; t++) {
-                String filename = "/Users/jasonkao/Desktop/pitch-analyzer/f0/tone" + t + ".csv";
-                System.out.println("Writing to " + filename + ".");
-                output = new BufferedWriter( new FileWriter( new File( filename )));
-                for (int i = 0; i < data.length; i++) {
-                    File f = data[i];
-                    if (f.getName().indexOf(t + ".txt") > 0) {
-                        User u = new User( new Scanner(f), new Scanner( zhu[ t - 1 ]));
-                        System.out.println(u);
-                        output.write("" + u.getRSquared());
-                        output.newLine();
-                    }
-                }
-                output.close();
-                System.out.println(filename + " closed.");
+
+            String dir = "/Users/jasonkao/Desktop/pitch-analyzer/f0/";
+
+            for ( File f : files ) {
+
+                Scanner name = new Scanner( f.getName() );
+                int userID = name.nextInt();
+                int tone = name.nextInt();
+
+                Scanner userFile = new Scanner( f );
+                Scanner zhuFile = new Scanner( zhu[tone - 1 ]);
+
+                User user = new User( userFile, zhuFile );
+
+                scores[tone - 1].add( user.getRSquared() );
             }
+
         } catch(IOException e) {
             System.out.println("IO Exception");
         }
     }
 
-    public static void print2D(double[][] d)
-    {
-        String output = "";
-        for (int i = 1; i < d.length; i++) {
-            output += "[";
-            for (double x : d[i]) {
-                output += x + ", ";
-            }
-            output = output.substring(0, output.length() - 2) + "]\n";
-        }
-        System.out.println(output);
-    }
-
-    public static void print1D(Object[] o) {
-        String output = "";
-        for (Object x : o) {
+public static void print2D(double[][] d)
+{
+    String output = "";
+    for (int i = 1; i < d.length; i++) {
+        output += "[";
+        for (double x : d[i]) {
             output += x + ", ";
         }
-        if (o.length > 0) {
-            output = output.substring(0, output.length() - 2);
-        }
-        System.out.println(output + "]");
+        output = output.substring(0, output.length() - 2) + "]\n";
     }
+    System.out.println(output);
+}
+
+public static void print1D(Object[] o) {
+    String output = "";
+    for (Object x : o) {
+        output += x + ", ";
+    }
+    if (o.length > 0) {
+        output = output.substring(0, output.length() - 2);
+    }
+    System.out.println(output + "]");
+}
 }

@@ -29,7 +29,8 @@ public class Driver {
 
                 Scanner userScan = new Scanner( f );
                 Scanner zhuScan = new Scanner( zhuFiles[ tone - 1 ]);
-                User user = new User( userScan, zhuScan );
+
+                User user = new User( userScan, zhuScan, userID == 3 && tone == 2 );
 
                 toneStorer[userID][tone - 1] = user.getRSquared();
 
@@ -38,16 +39,16 @@ public class Driver {
             }
         }
 
-        printOut( toneStorer );
+        //printOut( toneStorer );
     }
 
     public static void printOut(double[][] d)
     {
-        for (double[] user : toneStorer) {
-            if ( takeSum(user) == 0.0 ) { // empty means 0.0
+        for (int u = 0; u < d.length; u++) {
+            if ( takeSum(d[u]) == 0.0 ) { // empty means 0.0
                 continue;
             }
-            for (double tone : user) {
+            for (double tone : d[u]) {
                 System.out.print(tone + ",");
             }
             System.out.println();

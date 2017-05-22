@@ -1,13 +1,13 @@
 import java.util.*;
 
-public class Regression {
+public class NonlinearRegression {
 
     private double[] x, y;
     private double r, a, b;
 
-    private double ROUND_OFF = Math.pow( 10, 5 ); // round to {{ ROUND_OFF }} digits
+    private double ROUND_OFF = 5; // round to {{ ROUND_OFF }} digits
 
-    public Regression(ArrayList<Double> times, ArrayList<Double> pitches)
+    public NonlinearRegression(ArrayList<Double> times, ArrayList<Double> pitches, int l)
     {
         if (times.size() != pitches.size()) {
             throw new IllegalArgumentException("ArrayLists must be of same length.");
@@ -15,13 +15,33 @@ public class Regression {
 
         x = new double[times.size()];
         y = new double[pitches.size()];
+        ROUND_OFF = Math.pow(10, ROUND_OFF);
 
         for (int i = 0; i < times.size(); i++) {
             x[i] = times.get(i);
             y[i] = pitches.get(i);
+            if ( l == 0 ) {
+                x[i] = times.get(i);
+                y[i] = pitches.get(i);
+            } else if ( l == 1 ) {
+                x[i] = times.get(i);
+                y[i] = Math.log( pitches.get(i) );
+            } else if ( l == 2 ) {
+                x[i] = Math.log( times.get(i) );
+                y[i] = Math.log( pitches.get(i) );
+            }
         }
 
         r = getCovariance() / (getStDevX() * getStDevY());
+        b = getSlope();
+        a = getIntercept();
+
+        if (l > 0) {
+            a = Math.pow( Math.E, a );
+        }
+        if (l == 1) {
+            b = Math.pow( Math.E, b );
+        }
     }
 
     public double getRSquared()

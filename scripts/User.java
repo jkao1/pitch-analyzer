@@ -1,7 +1,7 @@
 import java.util.*;
 import java.io.*;
 
-public class User {
+public class User implements Comparable<User> {
 
     private final static int NORMAL_CONSTANT = 1000; // used to normailze data and remove negative values
 
@@ -76,5 +76,10 @@ public class User {
 
     public String toString() {
         return id + "-" + tone + "; " + reg;
+    }
+
+    public int compareTo(User o)
+    {
+        return (10 * id + tone) - (10 * o.id + o.tone);
     }
 }

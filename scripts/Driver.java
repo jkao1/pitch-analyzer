@@ -3,7 +3,7 @@ import java.io.*;
 
 public class Driver {
 
-    private static double[][] toneStorer = new double[50][4];
+    private static double[][] toneStorer = new double[70][4];
 
     public static void main(String[] args)
     {
@@ -11,10 +11,10 @@ public class Driver {
         File[] files = f0.listFiles();
 
         File[] zhuFiles = {
-            new File("/Users/jasonkao/Desktop/pitch-analyzer/zhu-tone1.txt"),
-            new File("/Users/jasonkao/Desktop/pitch-analyzer/zhu-tone2.txt"),
-            new File("/Users/jasonkao/Desktop/pitch-analyzer/zhu-tone3.txt"),
-            new File("/Users/jasonkao/Desktop/pitch-analyzer/zhu-tone4.txt")
+            new File("/Users/jasonkao/Desktop/pitch-analyzer/backup/zhu-tone1.txt"),
+            new File("/Users/jasonkao/Desktop/pitch-analyzer/backup/zhu-tone2.txt"),
+            new File("/Users/jasonkao/Desktop/pitch-analyzer/backup/zhu-tone3.txt"),
+            new File("/Users/jasonkao/Desktop/pitch-analyzer/backup/zhu-tone4.txt")
         };
 
         String dir = "/Users/jasonkao/Desktop/pitch-analyzer/f0/";
@@ -30,24 +30,27 @@ public class Driver {
                 Scanner userScan = new Scanner( f );
                 Scanner zhuScan = new Scanner( zhuFiles[ tone - 1 ]);
 
-                User user = new User( userScan, zhuScan, userID == 3 && tone == 2 );
+                User user = new User( userScan, zhuScan, false );
 
-                toneStorer[userID][tone - 1] = user.getRSquared();
+                toneStorer[ userID ][ tone - 1 ] = user.getRSquared();
 
             } catch (Exception e) {
-                System.out.println("!#EXCEPTION: Failed to read file " + f + ".");
+                e.printStackTrace();
+                System.out.println("!#EXCEPTION: Failed to read file " + f);
             }
         }
 
-        //printOut( toneStorer );
+        printOut( toneStorer );
     }
 
     public static void printOut(double[][] d)
     {
+        System.out.println("userID,tone1,tone2,tone3,tone4");
         for (int u = 0; u < d.length; u++) {
             if ( takeSum(d[u]) == 0.0 ) { // empty means 0.0
                 continue;
             }
+            System.out.print(u + ",");
             for (double tone : d[u]) {
                 System.out.print(tone + ",");
             }

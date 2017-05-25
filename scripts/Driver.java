@@ -3,7 +3,7 @@ import java.io.*;
 
 public class Driver {
 
-    private static double[][] toneStorer = new double[70][4];
+    private static double[][] toneStorer = new double[70][12];
 
     public static void main(String[] args)
     {
@@ -21,6 +21,10 @@ public class Driver {
 
         for ( File f : files ) {
 
+            if (f.getName().equals(".DS_STORE")) {
+                continue;
+            }
+
             try {
 
                 String[] fileParts = f.getName().split( "-" );
@@ -30,9 +34,11 @@ public class Driver {
                 Scanner userScan = new Scanner( f );
                 Scanner zhuScan = new Scanner( zhuFiles[ tone - 1 ]);
 
-                User user = new User( userScan, zhuScan, false );
+                User user = new User( userScan, zhuScan, userID == 348 && tone == 3 );
 
                 toneStorer[ userID ][ tone - 1 ] = user.getRSquared();
+                toneStorer[ userID ][ 4 + tone - 1 ] = user.getRMSD();
+                toneStorer[ userID ][ 8 + tone - 1 ] = user.getMAE();
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -40,19 +46,25 @@ public class Driver {
             }
         }
 
-        printOut( toneStorer );
+        printOut( toneStorer, 2 );
     }
 
-    public static void printOut(double[][] d)
+    /*
+     * @parameter n
+     * 0-Rsquared
+     * 1-RMSD
+     * 2-MAE
+     */
+    public static void printOut(double[][] d, int n)
     {
-        System.out.println("userID,tone1,tone2,tone3,tone4");
+        System.out.println("userID,tone1,tone2,tone3,tone4");//,RMSD1,RMSD2,RMSD3,RMSD4,MAE1,MAE2,MAE3,MAE4");
         for (int u = 0; u < d.length; u++) {
             if ( takeSum(d[u]) == 0.0 ) { // empty means 0.0
                 continue;
             }
             System.out.print(u + ",");
-            for (double tone : d[u]) {
-                System.out.print(tone + ",");
+            for (int i = n * 4; i < n * 4 + 4; i++) {
+                System.out.print(d[u][i] + ",");
             }
             System.out.println();
         }

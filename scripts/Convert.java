@@ -7,7 +7,8 @@ public class Convert {
     {
         Scanner in = new Scanner( new BufferedReader( new InputStreamReader ( System.in )));
         while ( in.hasNext() ) {
-            System.out.println(in.next() + "," + in.next() + "," + in.next() + "," + in.next() + "," + in.next() + "," + in.next() + "," + in.next() + "," + in.next());
+            System.out.println(in.next() + "," + in.next());
+            //System.out.println(in.next() + "," + in.next() + "," + in.next() + "," + in.next() + "," + in.next() + "," + in.next() + "," + in.next() + "," + in.next());
         }
     }
 }

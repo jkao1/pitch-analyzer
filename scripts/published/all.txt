@@ -1,0 +1,544 @@
+import java.util.*;
+import java.io.*;
+
+public class Driver {
+
+    private static double[][] toneStorer = new double[70][12];
+
+    public static void main(String[] args)
+    {
+        File f0 = new File("/Users/jasonkao/Desktop/pitch-analyzer/f0");
+        File[] files = f0.listFiles();
+
+        File[] zhuFiles = {
+            new File("/Users/jasonkao/Desktop/pitch-analyzer/backup/zhu-tone1.txt"),
+            new File("/Users/jasonkao/Desktop/pitch-analyzer/backup/zhu-tone2.txt"),
+            new File("/Users/jasonkao/Desktop/pitch-analyzer/backup/zhu-tone3.txt"),
+            new File("/Users/jasonkao/Desktop/pitch-analyzer/backup/zhu-tone4.txt")
+        };
+
+        String dir = "/Users/jasonkao/Desktop/pitch-analyzer/f0/";
+
+        for ( File f : files ) {
+
+            if (f.getName().equals(".DS_STORE")) {
+                continue;
+            }
+
+            try {
+
+                String[] fileParts = f.getName().split( "-" );
+                int userID = Integer.parseInt( fileParts[0] );
+                int tone = fileParts[1].charAt(0) - '0';
+
+                Scanner userScan = new Scanner( f );
+                Scanner zhuScan = new Scanner( zhuFiles[ tone - 1 ]);
+
+                User user = new User( userScan, zhuScan, userID == 348 && tone == 3 );
+
+                toneStorer[ userID ][ tone - 1 ] = user.getRSquared();
+                toneStorer[ userID ][ 4 + tone - 1 ] = user.getRMSD();
+                toneStorer[ userID ][ 8 + tone - 1 ] = user.getMAE();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("!#EXCEPTION: Failed to read file " + f);
+            }
+        }
+
+        printOut( toneStorer, 2 );
+    }
+
+    /*
+     * @parameter n
+     * 0-Rsquared
+     * 1-RMSD
+     * 2-MAE
+     */
+    public static void printOut(double[][] d, int n)
+    {
+        System.out.println("userID,tone1,tone2,tone3,tone4");//,RMSD1,RMSD2,RMSD3,RMSD4,MAE1,MAE2,MAE3,MAE4");
+        for (int u = 0; u < d.length; u++) {
+            if ( takeSum(d[u]) == 0.0 ) { // empty means 0.0
+                continue;
+            }
+            System.out.print(u + ",");
+            for (int i = n * 4; i < n * 4 + 4; i++) {
+                System.out.print(d[u][i] + ",");
+            }
+            System.out.println();
+        }
+    }
+
+    private static double takeSum(double[] d) {
+        double output = 0.0;
+        for (double dub : d) {
+            output += dub;
+        }
+        return output;
+    }
+
+    public static void print2D(double[][] d)
+    {
+        String output = "";
+        for (int i = 1; i < d.length; i++) {
+            output += "[";
+            for (double x : d[i]) {
+                output += x + ", ";
+            }
+            output = output.substring(0, output.length() - 2) + "]\n";
+        }
+        System.out.println(output);
+    }
+
+    public static void print1D(Object[] o) {
+        String output = "";
+        for (Object x : o) {
+            output += x + ", ";
+        }
+        if (o.length > 0) {
+            output = output.substring(0, output.length() - 2);
+        }
+        System.out.println(output + "]");
+    }
+}
+
+public class MyHeap {
+
+    private int O_CONST;
+
+    private Double[] ary;
+    private int size;
+
+    public MyHeap() {
+        ary = new Double[10];
+        size = 1;
+        O_CONST = 1;
+    }
+
+    public MyHeap(boolean isMax) {
+        this();
+        if (isMax) {
+            O_CONST = 1;
+        } else {
+            O_CONST = -1;
+        }
+    }
+
+    public void add(Double i)
+    {
+        if (size == ary.length) {
+            resize();
+        }
+        ary[size] = i;
+        pushUp();
+        size++;
+    }
+
+    private void pushUp()
+    {
+        int tracker = size;
+        while (tracker > 1 && ary[tracker].compareTo( ary[tracker / 2] ) * O_CONST > 0) {
+            swap(tracker, tracker / 2);
+            tracker = tracker / 2;
+        }
+    }
+
+    private void resize()
+    {
+        Double[] biggerAry = new Double[ary.length * 2];
+        for (int i = 0; i < ary.length; i++) {
+            biggerAry[i] = ary[i];
+        }
+        ary = biggerAry;
+    }
+
+    public Double remove()
+    {
+        Double output = ary[1];
+        ary[1] = ary[size - 1];
+        pushDown();
+        size--;
+        return output;
+    }
+
+    private void pushDown()
+    {
+        int tracker = 1;
+        while (2 * tracker + 1 < size) {
+            boolean goLeft = ary[2 * tracker].compareTo(ary[2 * tracker + 1]) * O_CONST > 0;
+            if (goLeft) {
+                if (ary[tracker].compareTo( ary[2 * tracker] ) * O_CONST < 0) {
+                    swap(tracker, 2 * tracker);
+                    tracker = 2 * tracker;
+                } else if (ary[tracker].compareTo( ary[2 * tracker + 1] ) * O_CONST < 0) {
+                    swap(tracker, 2 * tracker + 1);
+                    tracker = 2 * tracker + 1;
+                } else {
+                    break;
+                }
+            } else {
+                if (ary[tracker].compareTo( ary[2 * tracker + 1] ) * O_CONST < 0) {
+                    swap(tracker, 2 * tracker + 1);
+                    tracker = 2 * tracker + 1;
+                } else if (ary[tracker].compareTo( ary[2 * tracker] ) * O_CONST < 0) {
+                    swap(tracker, 2 * tracker);
+                    tracker = 2 * tracker;
+                }  else {
+                    break;
+                }
+            }
+        }
+    }
+
+    private void swap(int a, int b)
+    {
+        Double temp = ary[a];
+        ary[a] = ary[b];
+        ary[b] = temp;
+    }
+
+    public Double peek()
+    {
+        return ary[1];
+    }
+
+    public int size()
+    {
+        return size - 1;
+    }
+
+    public String toString()
+    {
+        String output = "[";
+        for (int i = 0; i < size; i++) {
+            output += ary[i] + ", ";
+        }
+        if (size > 1) {
+            output = output.substring(0, output.length() - 2);
+        }
+        return output + "] " + O_CONST;
+    }
+
+}
+
+public class Regression {
+
+    private double[] x, y;
+    private double r, a, b;
+
+    private double ROUND_OFF = Math.pow( 10, 5 ); // round to {{ ROUND_OFF }} digits
+
+    public Regression(ArrayList<Double> times, ArrayList<Double> pitches)
+    {
+        if (times.size() != pitches.size()) {
+            throw new IllegalArgumentException("ArrayLists must be of same length.");
+        }
+
+        x = new double[times.size()];
+        y = new double[pitches.size()];
+
+        for (int i = 0; i < times.size(); i++) {
+            x[i] = times.get(i);
+            y[i] = pitches.get(i);
+        }
+
+        r = getCovariance() / (getStDevX() * getStDevY());
+    }
+
+    public double getRSquared()
+    {
+        return r * r;
+    }
+
+    private double getCovariance()
+    {
+        double xbar = 0.0;
+        for (double d : x) {
+            xbar += d;
+        }
+        xbar /= x.length;
+
+        double ybar = 0.0;
+        for (double d : y) {
+            ybar += d;
+        }
+        ybar /= y.length;
+
+        double covariance = 0.0;
+        for (int i = 0; i < x.length; i++) {
+            covariance += (x[i] - xbar) * (y[i] - ybar);
+        }
+        covariance /= x.length - 1;
+        return covariance;
+    }
+
+    private double getStDevY()
+    {
+        double xbar = 0.0;
+        for (double d : y) {
+            xbar += d;
+        }
+        xbar /= y.length;
+
+        double stdev = 0.0;
+        for (double d : y) {
+            stdev += Math.pow(d - xbar, 2);
+        }
+        stdev /= y.length - 1;
+        return Math.pow(stdev, 0.5);
+    }
+
+    private double getStDevX()
+    {
+        double xbar = 0.0;
+        for (double d : x) {
+            xbar += d;
+        }
+        xbar /= x.length;
+
+        double stdev = 0.0;
+        for (double d : x) {
+            stdev += Math.pow(d - xbar, 2);
+        }
+        stdev /= x.length - 1;
+        return Math.pow(stdev, 0.5);
+    }
+
+    private double getSlope()
+    {
+        return r * getStDevY() / getStDevX();
+    }
+
+    private double getIntercept()
+    {
+        double xbar = 0.0;
+        for (double d : x) {
+            xbar += d;
+        }
+        xbar /= x.length;
+
+        double ybar = 0.0;
+        for (double d : y) {
+            ybar += d;
+        }
+        ybar /= y.length;
+
+        return ybar - xbar * getSlope();
+    }
+
+    private void print1D(double[] d) {
+        String output = "[";
+        for (double x : d) {
+            output += x + ", ";
+        }
+        if (d.length > 0) {
+            output = output.substring( 0, output.length() - 2 );
+        }
+        System.out.println( output + "]" );
+    }
+
+    public String toString()
+    {
+        return "b: " +
+            Math.round(b * ROUND_OFF) / ROUND_OFF +
+            ", R-squared: " +
+            Math.round(getRSquared() * ROUND_OFF) / ROUND_OFF;
+    }
+
+}
+public class RunningMedian {
+
+    public MyHeap left, right;
+
+    public RunningMedian() {
+        left = new MyHeap(true);
+        right = new MyHeap(false);
+    }
+
+    public void add(double v)
+    {
+        if (left.size() + right.size() == 0) {
+            left.add(v);
+        } else if (v * 1.0 > getMedian()) {
+            right.add(v);
+        } else {
+            left.add(v);
+        }
+
+        if (right.size() >= left.size() + 2) {
+            left.add(right.remove());
+        } else if (left.size() >= right.size() + 2) {
+            right.add(left.remove());
+        }
+    }
+
+    public double getMedian()
+    {
+        if (left.size() == right.size()) {
+            return (left.peek() + right.peek()) / 2.0;
+        } else if (left.size() > right.size()) {
+            return left.peek();
+        }
+        return right.peek();
+    }
+
+    public String toString()
+    {
+        return left + "\n" + right;
+    }
+
+}
+
+public class User implements Comparable<User> {
+
+    private static int SIZE = 100; // how much to approximate into
+
+    private int id, tone;
+    private ArrayList<Double> times, pitches;
+    private ArrayList<Double> zhuTimes, zhuPitches;
+    private ArrayList<Double> approxTime, approxPitch;
+    private ArrayList<Double> approxZhuTime, approxZhuPitch;
+    private Regression reg;
+    private MeanError me;
+
+    public User(Scanner in, Scanner zhu, boolean debug)
+    {
+        id = in.nextInt();
+        tone = in.nextInt();
+
+        approxTime = new ArrayList<Double>();
+        approxPitch = new ArrayList<Double>();
+        approxZhuTime = new ArrayList<Double>();
+        approxZhuPitch = new ArrayList<Double>();
+
+        times = new ArrayList<>();
+        pitches = new ArrayList<>();
+        move( times, pitches, in );
+        normalizeGood( times );
+        normalize( pitches );
+        approximate( times, approxTime );
+        approximate( pitches, approxPitch );
+
+        zhuTimes = new ArrayList<>();
+        zhuPitches = new ArrayList<>();
+        move( zhuTimes, zhuPitches, zhu );
+        normalizeGood( zhuTimes );
+        normalize( zhuPitches );
+        approximate( zhuTimes, approxZhuTime );
+        approximate( zhuPitches, approxZhuPitch );
+
+        if (debug) {
+            /*
+            for (int i = 0; i < SIZE; i++) {
+                System.out.println(approxPitch.get(i) + "," + approxZhuPitch.get(i));
+            }
+            System.out.println("48-3Times,48-3Pitches");
+            for (int i = 0; i < times.size(); i++) {
+                System.out.println(times.get(i) + "," + pitches.get(i));
+                }*/
+            System.out.println("48-3ApproxTimes,48-3ApproxPitches");
+            for (int i = 0; i < approxTime.size(); i++) {
+                System.out.println(approxTime.get(i) + "," + approxPitch.get(i));
+            }
+            System.out.println("zhuAATimes,zhuAAPitches");
+            for (int i = 0; i < approxZhuTime.size(); i++) {
+                System.out.println(approxZhuTime.get(i) + "," + approxZhuPitch.get(i));
+            }/*
+            System.out.println("approxPitch,approxZhuPitch");
+            for (int i = 0; i < approxTime.size(); i++) {
+                System.out.println(approxPitch.get(i) + "," + approxZhuPitch.get(i));
+                }*/
+        }
+
+        reg = new Regression( approxPitch, approxZhuPitch );
+        me = new MeanError( approxPitch, approxZhuPitch );
+    }
+
+    public double getRMSD() {
+        return me.getRMSD();
+    }
+
+    public double getMAE() {
+        return me.getMAE();
+    }
+
+    private static void approximate( ArrayList<Double> x, ArrayList<Double> y )
+    {
+        for (int i = 0; i < SIZE; i++) {
+            int j = (int) ( ( (double) x.size() ) / SIZE * i);
+            y.add( x.get( j ));
+        }
+    }
+
+    private static void concatenate(ArrayList<Double> x, ArrayList<Double> y) {
+        for (Double d : y) {
+            x.add(d);
+        }
+    }
+
+    private static void move(ArrayList<Double> times, ArrayList<Double> pitches, Scanner in )
+    {
+        boolean isPitch = false;
+        while (in.hasNext()) {
+            String v = in.next();
+            if (isDouble(v)) {
+                if (isPitch) {
+                    pitches.add(Double.parseDouble(v));
+                } else {
+                    times.add(Double.parseDouble(v));
+                }
+                isPitch = !isPitch;
+            }
+        }
+    }
+
+    private static boolean isDouble(String value) {
+        try {
+            Integer.parseInt(value);
+            return false;
+        } catch (NumberFormatException e) {}
+
+        try {
+            Double.parseDouble(value);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private static void normalizeGood(ArrayList<Double> x)
+    {
+        double min = Collections.min(x);
+        double max = Collections.max(x);
+
+        for (int i = 0; i < x.size(); i++) {
+            x.set(i, (x.get(i) - min) / (max - min) );
+        }
+    }
+
+    private static void normalize(ArrayList<Double> x)
+    {
+        Double mean = 0.0;
+        for (Double d : x) {
+            mean += d;
+        }
+        mean /= x.size();
+        for (int i = 0; i < x.size(); i++) {
+            x.set(i, x.get(i) - mean);
+        }
+    }
+
+    public double getRSquared() {
+        return reg.getRSquared();
+    }
+
+    public String toString() {
+        return id + "-" + tone + "; " + reg;
+    }
+
+    public int compareTo(User o)
+    {
+        return (10 * id + tone) - (10 * o.id + o.tone);
+    }
+}
